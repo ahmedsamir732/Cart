@@ -35,8 +35,8 @@ class CartController extends Controller
 	
 	public function add()
 	{
-		$user = $this->getDoctrine()->getRepository(User::class)->find(1);
-		$product = $this->getDoctrine()->getRepository(Product::class)->find(1);
+		$user = $this->getDoctrine()->getRepository(User::class)->find(2);
+		$product = $this->getDoctrine()->getRepository(Product::class)->find(mt_rand(0, 15));
 		$quantity = 3;
 
 		// $CartExist = new CartExist($this->getDoctrine()->getRepository(Cart::class));
@@ -111,5 +111,19 @@ class CartController extends Controller
 		$status = $deleter->delete($cart);
 
 		return new Response('item delete from cart successfuly');
+	}
+
+	/**
+	 * 
+	 * @Route("cart/empty")
+	 */
+	public function empty()
+	{
+		$user_id = 2;
+
+		$deleter = new Delete($this->getDoctrine()->getManager());
+		$status = $deleter->emptyCart($user_id);
+
+		return new Response('cart empty successfuly');
 	}
 }
