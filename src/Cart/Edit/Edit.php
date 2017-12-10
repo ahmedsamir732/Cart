@@ -20,11 +20,11 @@ class Edit implements EditInterface
 
 	protected $product;
 
-	protected $quantity;
+	protected $quantity = 0;
 
 	protected $id;
 
-	protected $errorMsg;
+	protected $errorMsg = '';
 
 	public function __construct($doctrineManager)
 	{

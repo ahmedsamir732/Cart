@@ -7,6 +7,8 @@ use App\Cart\CheckQuantity;
 use App\Cart\ErrorMessage;
 use App\Entity\User;
 use App\Entity\Product;
+use App\Cart\Edit\Edit;
+use App\Cart\CartExist;
 
 class Add implements AddInterface
 {
@@ -19,11 +21,11 @@ class Add implements AddInterface
 
 	protected $product;
 
-	protected $quantity;
+	protected $quantity = 0;
 
 	protected $id;
 
-	protected $errorMsg;
+	protected $errorMsg = '';
 
 	public function __construct($doctrineManager)
 	{
@@ -49,6 +51,10 @@ class Add implements AddInterface
 	{
 		if (!$this->checkQuantity()) {
 			return false;
+		}
+		$cart = $this->checkExist($this->user->getId(), $this->product->getId());
+		if($cart) {
+			return $this->callEdit($cart);
 		}
 
 		$cart = new Cart();
@@ -81,9 +87,32 @@ class Add implements AddInterface
 		return $response['status']; 
 	}
 
+	protected function checkExist($user_id, $product_id)
+	{
+		$cart = null;
+		$CartExist = new CartExist($this->doctrineManager->getRepository(Cart::class));
+		if($CartExist->checkCart($user_id, $product_id)) {
+			$cart = $CartExist->getCart();
+		}
+
+		return $cart;
+	}
+
 	public function getErrorMessage()
 	{
 		return $this->errorMsg;
+	}
+
+	public function callEdit(Cart $cart)
+	{
+		$editCart = new Edit($this->doctrineManager);
+		$editCart->setQuantity($this->quantity + $cart->getQuantity());
+		$status = $editCart->edit($cart);
+		if (!$status) {
+			$this->errorMsg = $editCart->getErrorMessage();
+		}
+
+		return $status;
 	}
 
 
