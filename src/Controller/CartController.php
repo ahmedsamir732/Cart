@@ -14,7 +14,9 @@ use App\Entity\User;
 use App\Entity\Cart;
 use App\Cart\Add\Add as AddCart;
 use App\Cart\Edit\Edit as EditCart;
+use App\Cart\Delete;
 use App\Cart\CartExist;
+use Symfony\Component\HttpFoundation\Request;
 
 class CartController extends Controller
 {
@@ -74,26 +76,40 @@ class CartController extends Controller
 	}
 
 	/**
-	 * @Route("/cart/edit/{id)")
+	 * @Route("/cart/edit/{id}")
 	 */
 	
 	public function edit($id)
 	{
+		$request = Request::createFromGlobals();
 		$cart = $this->getDoctrine()->getRepository(Cart::class)->find($id);
 		if (!$cart) {
 			return Response('Error: There no item with that id to update');
 		}
 
+		$quantity = $request->request->get('quantity')??0;
 		$EditCart = new EditCart($this->getDoctrine()->getManager());
-		$EditCart->setQuantity($cart->getQuantity() + 0);
+		$EditCart->setQuantity($cart->getQuantity() + $quantity);
+		$response = 'quantity updated successfully';
+
+		$status = $EditCart->edit($cart);
+		if(! $status) {
+			$response = $EditCart->getErrorMessage();
+		}
+
+		return new Response($response);
 	}
 
 	/**
-	 * @Route("/cart/delete")
+	 * @Route("/cart/delete/{id}")
 	 */
 	
-	public function delete()
+	public function delete($id)
 	{
-		return new Response("delete");
+		$cart = $this->getDoctrine()->getRepository(Cart::class)->find($id);
+		$deleter = new Delete($this->getDoctrine()->getManager());
+		$status = $deleter->delete($cart);
+
+		return new Response('item delete from cart successfuly');
 	}
 }
